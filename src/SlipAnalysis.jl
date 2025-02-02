@@ -2,9 +2,6 @@
 # analysis. As with the Python version, the get_slips function accounts
 # for both displacement-based ("SLIP"), and velocity-based ("SLIP rate")
 
-using Statistics
-using StatsBase
-
 """
     Wrapper function for the vectorized and fixed version of get_slips.
     Extracts basic avalanche statistics from provided data.
@@ -90,8 +87,10 @@ using StatsBase
 @inline function get_slips_wrapper(; disp::Vector{<:Real}=[], vel::Vector{<:Real}=[], time::Vector{<:Real}=[], drops::Bool=true,
      threshold::Real=0, mindrop::Real=0, threshtype::String="median", window_size::Real=101)::Tuple
     
+    # Alert the user if no data is given
     @assert (isempty(disp) && isempty(vel)) "Give at least one of velocity or displacement."
 
+    # Set the threshtype value based on input or alert the user if no valid choice is given
     thrt::Int = 0
     if threshtype == "mean"
         thrt = 1
@@ -103,26 +102,38 @@ using StatsBase
         @assert (false) "Parameter threshtype must be one of the following: \n mean \n median \n sliding_median"
     end
 
+    # Create the time vector if none is given
     if isempty(time)
         time = isempty(disp) ? eachindex(vel) : eachindex(disp)
     end
 
+    # Make window_size the nearest odd number for compatability with sliding_median.
     window_size = window_size + (1 - window_size % 2)
 
+    # Velocity input.
+    # st and en indices are the start and end in velocity-land.
+    # The time vector is shifted forward by 1 index so the displacement and time are same length.
     is_integrated::Bool = false
     if isempty(disp)
+        # Displacement start index is index_velocity_begins + 1.
+        # Displacement end index is index_velocity_ends + 1.
         disp = cumulative_trapz_int(time, vel)
         prepend!(disp, [disp[1],disp[1]])
         dt = median(diff(time))
-
+        # Make time and displacement the same length.
         time = [time[1] ; time .+= dt]
         is_integrated = true
     end
 
+    # Displacement input.
+    # st and en indices are start and end in displacement-land.
     if isempty(vel)
+        # Displacement start index is index_velocity_begins + 1.
+        # Displacement end index is index_displacement_ends.
         vel = diff(disp) ./ diff(time)
     end
 
+    # If looking at drops, invert the signal.
     disp = (-1)^(drops) .* disp
     vel = (-1)^(drops) .* vel
 
@@ -234,8 +245,8 @@ function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhol
 
     # Sizes are more accurately reported by only correcting for background rate, not the rate + threshold
     slip_sizes::Vector{Real} = smoothed[index_av_ends .+ is_step] .- smoothed[index_av_begins] .- diff_avg[index_av_begins] .* duration_calculation .* Int(threshhold != -1)
-    time_begins = time[index_av_begins]
-    time_ends = time[index_av_ends]
+    # time_begins = time[index_av_begins]
+    # time_ends = time[index_av_ends]
     time2 = 0.5 .* (time[1:end-1] .+ time[2:end])
     # Sampling time
     tsamp = median(diff(time2))

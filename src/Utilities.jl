@@ -1,8 +1,6 @@
 # General utilities functions, such as reading files or miscellaneous operations
 # on containers or data conversion.
 
-using Trapz
-
 """
     Reads data within a file with the newline character as delimiter
     and return them as a Vector.
