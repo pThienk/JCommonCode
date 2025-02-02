@@ -20,16 +20,16 @@
     time: (Vector; REQUIRED)
         Time vector in data units.
         Defaults to an index array, i.e., an array ranging from 0 to N - 1, where N is the length of the input data.
-    drops: (Boolean; OPTIONAL)
+    drops: (Bool; OPTIONAL)
         Default value is TRUE.
         Whether to scan the time series for drops in the data.
-    threshold: (Float; OPTIONAL)
+    threshold: (<:Real; OPTIONAL)
         Default value is 0.
         Number of standard deviations above the average velocity a fluctuation must be before it is considered an event.
         Recommend 0 for most applications.
         Setting this equal to -1 forces a zero-velocity threshold on velocity curve.
             This is useful for simulations since there's little to no noise to be mistaken for an avalanche.
-    mindrop: (Float; OPTIONAL)
+    mindrop: (<:Real; OPTIONAL)
         Default value is 0.
         Minimum size required to be counted as an event.
         Recommend 0 when starting analysis, but should be set higher when i.e. data culling to find the true value of tau.
@@ -60,11 +60,11 @@
     -------
     [0] velocity: list of lists
         -- A list of avalanche velocity curves.
-        -- E.g. v[8] will be the velocity curve for the 9th avalanche.
+        -- E.g. v[9] will be the velocity curve for the 9th avalanche.
         -- Velocity curve will always begin and end with 0s because the velocity had to cross 0 both times in its run.
     [1] times: list of lists
         -- A list of avalanche time curves.
-        -- E.g. t[8] will be the corresponding times at which v[8] velocity curve occured.
+        -- E.g. t[9] will be the corresponding times at which v[9] velocity curve occured.
         -- The time curve will have the 0s in the velocity curve occur at t_start - ts/2 and t_end + ts/2 as a 0-order estimate of when the curve intersected with zero.
     [2] sizes: list of floats
         -- List of avalanche sizes.
@@ -77,15 +77,15 @@
         -- For example, an avalanche with velocity profile [0,1,2,3,2,1,0] has a duration of 5 timesteps.
     [4] st: list of ints
         -- List of avalanche start indices.
-        -- E.g. st[8] is the index on the displacement where the 9th avalanche occurred.
+        -- E.g. st[9] is the index on the displacement where the 9th avalanche occurred.
         -- The start index is the first index that the velocity is above the threshold.
     [5] en: list of ints
         -- List of avalanche end indices.
-        -- E.g. en[8] will be the index on the displacement where the 9th avalanche ends.
+        -- E.g. en[9] will be the index on the displacement where the 9th avalanche ends.
         -- The end index is the first index after the velocity is below the threshold (accounting for Python index counting).
 """
 @inline function get_slips_wrapper(; disp::Vector{<:Real}=[], vel::Vector{<:Real}=[], time::Vector{<:Real}=[], drops::Bool=true,
-     threshold::Real=0, mindrop::Real=0, threshtype::String="median", window_size::Real=101)::Tuple
+     threshold::Real=0, mindrop::Real=0, threshtype::String="median", window_size::Int=101)::Tuple
     
     # Alert the user if no data is given
     @assert (isempty(disp) && isempty(vel)) "Give at least one of velocity or displacement."
@@ -274,4 +274,87 @@ function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhol
     end
 
     return (velocity, times, slip_sizes, slip_durations, index_av_begins, index_av_ends)
+end
+
+"""
+    Identical to get_slips_wrap & get_slips_core in terms of parameters and outputs, but specifically designed for velocity signals & to ensure no negative sizes.
+    Use the trapezoidal rule + chopping off all parts of the signal less than the threshold (i.e. velocity < threshold*std(data) or whatever) to get a more accurate view of the size of an event.
+
+    Parameters
+    ----------
+    time: (Vector; REQUIRED)
+        Time vector in data units.
+        Defaults to an index array, i.e., an array ranging from 0 to N - 1, where N is the length of the input data.
+    velocity: (Vector; REQUIRED)
+        Time series data to be analyzed for avalanches IF data is some quantity where at each time a new value is acquired.
+        I.e., number of spins flipped in one timestep of the random-field Ising model (RFIM) or the number of cell failures in one timestep in a slip model.
+        An avalanche in this perspective is a "slip RATE", in the parlance of the Dahmen Group.
+    drops: (Bool; OPTIONAL)
+        Default value is TRUE.
+        Whether to scan the time series for drops in the data.
+    threshold: (<:Real; OPTIONAL)
+        Default value is 0.
+        Number of standard deviations above the average velocity a fluctuation must be before it is considered an event.
+        Recommend 0 for most applications.
+        Setting this equal to -1 forces a zero-velocity threshold on velocity curve.
+            This is useful for simulations since there's little to no noise to be mistaken for an avalanche.
+    mindrop: (<:Real; OPTIONAL)
+        Default value is 0.
+        Minimum size required to be counted as an event.
+        Recommend 0 when starting analysis, but should be set higher when i.e. data culling to find the true value of tau.
+    threshtype: (String; OPTIONAL)
+        Default value is 'median'.
+        What type of threshold to use. Options:
+        'median'
+            -- Uses the median velocity instead of the mean velocity to quantify the average velocity.
+            -- Works best in signals with many excursions (i.e., many avalanches) and is not sensitive to outliers.
+            -- Threshold is calculated using median absolute deviation (MAD) with this option instead of standard deviation because it more accurately describes the dispersion of the noise fluctuations while ignoring the avalanches.
+        'mean'
+            -- This is the traditional method.
+            -- The threshold is compared to the mean velocity, (displacement[end]-displacement[start])/(time[end]-time[start]).
+            -- Threshold is calculated using the standard deviation with this setting.
+            -- This method has some major issues in non-simulation environments, as the standard deviation is very sensitive to large excursions from the noise floor
+        'sliding_median'
+            -- Uses a sliding median of width window_length to obtain a sliding median estimate of the background velocity.
+            -- Useful when the background rate of the process is not constant over the course of the experiment.
+            -- Threshold is calculated using median absolute deviation with this option and follows the change in average velocity while accurately describing the dispersion of the noise.
+    window_size: (Int; OPTIONAL)
+        Default value is 1.
+        The window size, in datapoints, to be used when calculating the sliding median.
+        Should be set to be much longer than the length of an avalanche in your data.
+        Jordan found setting window_size = 3% the length of the data (in one case) was good, but this value can be anywhere from just a few hundred datapoints (very short avalanches, many datapoints) to up to 10-20% of the total length of the signal (when the data are shorter but contain several very long avalanches).
+        This is worth playing with!
+
+    Returns
+    -------
+    [0] velocity: list of lists
+        -- A list of avalanche velocity curves.
+        -- E.g. v[9] will be the velocity curve for the 9th avalanche.
+        -- Velocity curve will always begin and end with 0s because the velocity had to cross 0 both times in its run.
+    [1] times: list of lists
+        -- A list of avalanche time curves.
+        -- E.g. t[9] will be the corresponding times at which v[9] velocity curve occured.
+        -- The time curve will have the 0s in the velocity curve occur at t_start - ts/2 and t_end + ts/2 as a 0-order estimate of when the curve intersected with zero.
+    [2] sizes: list of floats
+        -- List of avalanche sizes.
+        -- The size is defined as the amount the displacement changes while the velocity is strictly above the threshold.
+        -- Each size is corrected by the background rate.
+        -- That is, (background rate)*(duration) is removed from the event size.
+    [3] durations: list of floats
+        -- List of avalanche durations.
+        -- The duration is the amount of time the velocity is strictly above the threshold.
+        -- For example, an avalanche with velocity profile [0,1,2,3,2,1,0] has a duration of 5 timesteps.
+    [4] st: list of ints
+        -- List of avalanche start indices.
+        -- E.g. st[9] is the index on the displacement where the 9th avalanche occurred.
+        -- The start index is the first index that the velocity is above the threshold.
+    [5] en: list of ints
+        -- List of avalanche end indices.
+        -- E.g. en[9] will be the index on the displacement where the 9th avalanche ends.
+        -- The end index is the first index after the velocity is below the threshold (accounting for Python index counting).
+"""
+function get_slips_vel(time::Vector{<:Real}, velocity::Vector{<:Real}, drops::Bool=true,
+     threshold::Real=0, mindrop::Real=0, threshtype::String="median", window_size::Int=101)
+     
+    
 end

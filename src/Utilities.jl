@@ -24,8 +24,8 @@ end
 
     Return: CR::Vector{Number} - cumulative integration result for each domain step
 """
-@inline function cumulative_trapz_int(x::Vector{<:Number}, f::Vector{<:Number})::Vector{Number}
-    CR::Vector{Number} = []
+@inline function cumulative_trapz_int(x::Vector{<:Real}, f::Vector{<:Real})::Vector{Real}
+    CR::Vector{Real} = []
 
     min_indexes = min(length(x), length(f)) == length(x) ? eachindex(x) : eachindex(f)
 
@@ -34,4 +34,19 @@ end
     end
 
     return CR
+end
+
+"""
+    Finds the sliding medians of a 1D Vector according to window_size. The returned Vector
+    is always of the same length as the original. The algorithm uses the nearest valid value
+    for edge conditions; this is equivalent to SciPy's median_filter() with mode='nearest'.
+    Currently, only this condition is supported, might be extended in the future!
+    
+    Parameters: samp::Vector{<:Real} - the vector of samples - REQUIRED
+                window_size::Int - window size for taking the median - REQUIRED
+
+    Return: filtered::Vector{Real} - the resulting Vector, always of the same length as samp
+"""
+function sliding_median(samp::Vector{<:Real}, window_size::Int)::Vector{Real}
+    
 end
