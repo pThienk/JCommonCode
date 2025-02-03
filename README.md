@@ -11,7 +11,7 @@ _It is assumed that you already have Julia installed_
 
 2) Open the Julia REPL and type ']' to enter package mode.
 
-3) In the package mode, type **add <path-to-JCommonCode>**; the package should be automatically added
+3) In the package mode, type **add _path-to-JCommonCode_**; the package should be automatically added
     with all of its dependecies taken care of by Julia.
 
 4) Now you can go back to the REPL screen with **BACKSPACE**, and type **using JCommonCode** to start using!
