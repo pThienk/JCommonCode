@@ -130,7 +130,7 @@ end
     [0] x_vals: (Array) X values of the line
     [1] y_vals: (Array) Y values of the line
 """
-function pow_linemaker(slope::Real, intercept::Tuple{<:Real,<:Real}, xmin::Real, xmax::Real; ppd::Real=40)::Tuple
+@inline function pow_linemaker(slope::Real, intercept::Tuple{<:Real,<:Real}, xmin::Real, xmax::Real; ppd::Real=40)::Tuple
     
     log_x_intercept, log_y_intercept = log10.(intercept)
     log_xmin = log10(xmin)
