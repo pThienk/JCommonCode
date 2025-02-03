@@ -8,6 +8,8 @@ using Trapz
 export readline_data
 export cumulative_trapz_int
 export sliding_median
+export unique_count
+export pow_linemaker
 include("Utilities.jl")
 
 # Includes and exports user-side slips functions
@@ -16,6 +18,8 @@ export get_slips_vel
 include("SlipAnalysis.jl")
 
 # Includes and exports all CCDF/CDF related functions
+export ccdf
+export cdf
 include("CCDF.jl")
 
 
