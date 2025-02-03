@@ -74,3 +74,36 @@ end
 
     return filtered
 end
+
+"""
+    Takes a Vector and returns the Vectors of its unique elements, and their counts.
+    The elements are sorted in ascending order; the counts' indexes match their value
+    counterparts.
+
+    Parameter: vec::Vector{<:Real} - the operating Vector - REQUIRED
+
+    Return: Tuple{Vector, Vector} - a tuple of the unique elements Vector, and their counts
+"""
+@inline function unique_count(vec::Vector{<:Real})::Tuple
+    
+    sort!(vec; alg=QuickSort)
+    counts::Vector{Int} = []
+
+    count::Int = 1
+    current = nothing
+    next = nothing
+    for i in eachindex(vec) 
+        
+        current = vec[i]
+        next = i < lastindex(vec) ? vec[i+1] : nothing
+
+        if current == next
+            count += 1
+        else
+            push!(counts, count)
+            count = 1
+        end
+    end
+
+    return (unique!(vec), counts)
+end

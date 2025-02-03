@@ -88,7 +88,7 @@
      threshold::Real=0, mindrop::Real=0, threshtype::String="median", window_size::Int=101)::Tuple
     
     # Alert the user if no data is given
-    @assert (isempty(disp) && isempty(vel)) "Give at least one of velocity or displacement."
+    @assert !(isempty(disp) && isempty(vel)) "Give at least one of velocity or displacement!"
 
     # Set the threshtype value based on input or alert the user if no valid choice is given
     thrt::Int = 0
