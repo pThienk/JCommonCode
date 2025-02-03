@@ -28,19 +28,19 @@ _If you find any bug and/or problem, report to one of the following people_
 
 ## Current Supported Functionalities
 
-**Utilities**
+**Utilities**\
 readline_data()\
 cumulative_trapz_int()\
 sliding_median()\
 unique_count()\
-power_linemaker()\
+power_linemaker()
 
-**Slips Calculation**
+**Slips Calculation**\
 get_slips()\
-get\_slips\_vel()\
+get\_slips\_vel()
 
-**CCDF/CDF**
+**CCDF/CDF**\
 ccdf()\
-cdf()\
+cdf()
 
 **More Coming in the Future**
