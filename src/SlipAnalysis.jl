@@ -353,7 +353,7 @@ end
         -- E.g. en[9] will be the index on the displacement where the 9th avalanche ends.
         -- The end index is the first index after the velocity is below the threshold (accounting for Python index counting).
 """
-function get_slips_vel(time::Vector{<:Real}, velocity::Vector{<:Real}, drops::Bool=true,
+function get_slips_vel(; time::Vector{<:Real}, velocity::Vector{<:Real}, drops::Bool=true,
      threshold::Real=0, mindrop::Real=0, threshtype::String="median", window_size::Int=101)::Tuple
 
     stddev = x -> 1.4826 * mad(x)
