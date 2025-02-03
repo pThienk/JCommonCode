@@ -107,3 +107,42 @@ end
 
     return (unique!(vec), counts)
 end
+
+"""
+    Returns X and Y arrays of a power-law line.
+
+    Parameters
+    ----------
+    slope: (Float; REQUIRED)
+        Power law PDF slope
+    intercept: Tuple
+        Intercept of the line
+        Formatted as (x, y)
+    xmin: (Float; REQUIRED)
+        Minimum x-value the line will appear over
+    xmax: (Float; REQUIRED)
+        Maximum x-value the line will appear over
+    ppd: (Int; optional)
+        Number of log-spaced points per decade to evaluate the line at
+
+    Returns
+    -------
+    [0] x_vals: (Array) X values of the line
+    [1] y_vals: (Array) Y values of the line
+"""
+function pow_linemaker(slope::Real, intercept::Tuple{<:Real,<:Real}, xmin::Real, xmax::Real; ppd::Real=40)::Tuple
+    
+    log_x_intercept, log_y_intercept = log10.(intercept)
+    log_xmin = log10(xmin)
+    log_xmax = log10(xmax)
+
+    log_b = log_y_intercept - slope * log_x_intercept
+
+    num = round(ppd * (log_xmax - log_xmin))
+    spacing = (log_xmax - log_xmin) / num
+
+    x_values = [10^expo for expo in log_xmin:spacing:log_xmax]
+    y_values = (10^log_b) .* (x_values .^ slope)
+
+    return (x_values, y_values)
+end
