@@ -173,7 +173,7 @@ function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhol
             # and using relationship between MAD and standard deviation for normal data.
 
             # Rewritter's Comment: Not sure where the magic number 1.4826 came from, tbh
-            min_diff = diff_avg + (1.4826 * threshhold * mad(deriv .- diff_avg))
+            min_diff = diff_avg + (threshhold * mad(deriv .- diff_avg))
         end
     end
 
@@ -356,7 +356,7 @@ end
 function get_slips_vel(; time::Vector{<:Real}, velocity::Vector{<:Real}, drops::Bool=true,
      threshold::Real=0, mindrop::Real=0, threshtype::String="median", window_size::Int=101)::Tuple
 
-    stddev = x -> 1.4826 * mad(x)
+    stddev = mad
     avg = nothing # empty Any
     if threshtype == "median"
         avg = median
