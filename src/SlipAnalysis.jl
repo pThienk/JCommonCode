@@ -84,7 +84,7 @@
         -- E.g. en[9] will be the index on the displacement where the 9th avalanche ends.
         -- The end index is the first index after the velocity is below the threshold (accounting for Python index counting).
 """
-@inline function get_slips_wrapper(; disp::Vector{<:Real}=[], vel::Vector{<:Real}=[], time::Vector{<:Real}=[], drops::Bool=true,
+@inline function get_slips(; disp::Vector{<:Real}=[], vel::Vector{<:Real}=[], time::Vector{<:Real}=[], drops::Bool=true,
      threshold::Real=0, mindrop::Real=0, threshtype::String="median", window_size::Int=101)::Tuple
     
     # Alert the user if no data is given
@@ -144,7 +144,7 @@ function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhol
      is_integrated::Bool, threshtype::Real, window_size::Real)
     
     # We now take a numeric derivative and get an average
-    diff_avg::Vector{Real} = [] # empty
+    diff_avg::Vector = [] # empty
     if threshtype == 1
         diff_avg = mean(deriv)
         diff_avg = [diff_avg for _ in eachindex(deriv)]
@@ -154,9 +154,9 @@ function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhol
         diff_avg = median(deriv)
         diff_avg = [diff_avg for _ in eachindex(deriv)]
     else
-        # Implementation for sliding median option here
-        # WIP
-
+        diff_avg = sliding_median(deriv, window_size)
+        diff_avg[1:(window_size ÷ 2)] .= diff_avg[window_size ÷ 2]
+        diff_avg[end-(window_size ÷ 2 - 1):end] .= diff_avg[end-(window_size ÷ 2 - 1)]
     end
 
     # We now set the minimum slip rate for it to be considered an avalanche
@@ -180,7 +180,7 @@ function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhol
     # Now we see if a slip is occurring, i.e. if the derivative is above the minimum value.
 
     # Shift by one index forward
-    slips = [0 ; diff(deriv .> min_diff)]
+    slips::Vector = [0 ; diff(deriv .> min_diff)]
     # Velocity start index (first index above 0)
     velocity_index_begins::Vector{Int} = [i for i in eachindex(slips) if slips[i] == 1]
     # Velocity end index (last index above 0)
@@ -222,7 +222,7 @@ function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhol
     # Now we see if the drops were large enough to be considered an avalanche.
     # Avalanche duration calculated from signal input.
     # First-order approximation assuming the background velocity is constant throughout the avalanche.
-    mindrop_correction::Vector{Real} = []
+    mindrop_correction::Vector = []
     if threshhold != -1
         mindrop_correction = diff_avg[index_begins] .* (time[index_ends .- is_integrated] .- time[index_begins])
     else
@@ -233,7 +233,7 @@ function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhol
     index_av_ends::Vector{Int} = index_ends[mindrop .< (smoothed[displacement_index_ends] .- smoothed[displacement_index_begins] .- mindrop_correction)]
 
     # Finally we use these indices to get the durations and sizes of the events, accounting for diff().
-    slip_durations::Vector{Real} = time[index_av_ends] - time[index_av_begins]
+    slip_durations::Vector = time[index_av_ends] - time[index_av_begins]
     dt = median(diff(time))
 
     # Mindrop correction term.
@@ -244,15 +244,15 @@ function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhol
     is_step = 1 .* ((slip_durations .<= dt) .* is_integrated .* (index_av_ends .< length(smoothed)))
 
     # Sizes are more accurately reported by only correcting for background rate, not the rate + threshold
-    slip_sizes::Vector{Real} = smoothed[index_av_ends .+ is_step] .- smoothed[index_av_begins] .- diff_avg[index_av_begins] .* duration_calculation .* Int(threshhold != -1)
+    slip_sizes::Vector = smoothed[index_av_ends .+ is_step] .- smoothed[index_av_begins] .- diff_avg[index_av_begins] .* duration_calculation .* Int(threshhold != -1)
     # time_begins = time[index_av_begins]
     # time_ends = time[index_av_ends]
     time2 = 0.5 .* (time[1:end-1] .+ time[2:end])
     # Sampling time
     tsamp = median(diff(time2))
 
-    velocity::Vector{Real} = []
-    times::Vector{Real} = []
+    velocity::Vector = []
+    times::Vector = []
     for k ∈ eachindex(index_av_begins)
         st = index_av_begins[k]
         en = index_av_ends[k]
@@ -354,7 +354,101 @@ end
         -- The end index is the first index after the velocity is below the threshold (accounting for Python index counting).
 """
 function get_slips_vel(time::Vector{<:Real}, velocity::Vector{<:Real}, drops::Bool=true,
-     threshold::Real=0, mindrop::Real=0, threshtype::String="median", window_size::Int=101)
-     
-    
+     threshold::Real=0, mindrop::Real=0, threshtype::String="median", window_size::Int=101)::Tuple
+
+    stddev = x -> 1.4826 * mad(x)
+    avg = nothing # empty Any
+    if threshtype == "median"
+        avg = median
+    end
+    if threshtype == "mean"
+        stddev = std
+        avg = mean
+    end
+
+    cutoff_velocity = (avg(velocity) + stddev(velocity) * threshold * Int(threshold != -1)) .* ones(length(velocity))
+    if threshtype == "sliding_median"
+        cutoff_velocity = sliding_median(deriv, window_size)
+        cutoff_velocity[1:(window_size ÷ 2)] .= cutoff_velocity[window_size ÷ 2]
+        cutoff_velocity[end-(window_size ÷ 2 - 1):end] .= cutoff_velocity[end-(window_size ÷ 2 - 1)]
+        cutoff_velocity = cutoff_velocity .+ stddev(velocity) * threshold * Int(threshold != -1)
+    end
+
+    # Treat the velocity by removing the trend such that its centered around zero.
+    deriv::vector = []
+    if drops
+        deriv = -1 .* velocity
+    else
+        deriv = velocity .- cutoff_velocity
+    end
+
+    # Search for rises in the deriv curve.
+    # Set all parts of the curve with velocity less than zero to be equal to zero.
+    deriv[deriv .< 0] .= 0
+    # Get the slips
+    slips = [0 ; diff(deriv .> 0)]
+    # Velocity start index (first index above 0)
+    index_begins::Vector{Int} = [i for i in eachindex(slips) if slips[i] == 1]
+    # Velocity end index (last index above 0)
+    index_ends::Vector{Int} = [i for i in eachindex(slips) if slips[i] == -1]
+
+    if isempty(index_begins)
+        index_begins = [1]
+    end
+    if isempty(index_ends)
+        index_ends = [lastindex(time)]
+    end
+    if index_begins[end] >= index_ends[end]
+        push!(index_ends, lastindex(time))
+    end
+    if index_begins[1] >= index_ends[1]
+        prepend!(index_begins, [1])
+    end
+
+    # Get the possible sizes
+    possible_sizes::Vector = []
+    possible_durations::Vector = []
+    for i ∈ eachindex(index_begins) 
+        st = index_begins[i]
+        en = index_ends[i]
+        trapz_st = max(st - 1, 0)
+        trapz_en = min(en + 1, length(deriv))
+        push!(possible_sizes, trapz(time[trapz_st:trapz_en], deriv[trapz_st:trapz_en]))
+        push!(possible_durations, time[en] - time[st])
+    end
+
+    idxs::Vector{Int} = [i for i in eachindex(possible_sizes) if possible_sizes[i] < mindrop]
+    sizes::Vector = possible_sizes[idxs]
+    durations::Vector = possible_durations[idxs]
+    index_av_begins::Vector{Int} = index_begins[idxs]
+    index_av_ends::Vector{Int} = index_ends[idxs]
+
+    time2 = 0.5 .* (time[1:end-1] .+ time[2:end])
+    # Sampling time
+    tsamp = median(diff(time2))
+    push!(time2, time2[end] + tsamp)
+
+    velocity_out::Vector = []
+    times_out::Vector = []
+    for k ∈ eachindex(index_av_begins)
+        st = index_av_begins[k]
+        en = index_av_ends[k]
+        mask = st:en-1 |> collect
+        if st == en
+            mask = st
+        end
+
+        # First-order approximation: assume the shape begins and ends at min_diff halfway between the start index and the preceeding index.
+        curv = zeros(en - st + 2)
+        curt = zeros(en - st + 2)
+        curv[2:end-1] .= deriv[mask]
+        curt[2:end-1] .= time2[mask]
+        curt[1] = curt[2] - tsamp / 2
+        curt[end] = curt[end-1] + tsamp / 2
+
+        velocity_out = curv
+        times_out = curt
+    end
+
+    return (velocity_out, times_out, sizes, durations, index_av_begins, index_av_ends)
 end
