@@ -140,11 +140,11 @@
     return get_slips_core(disp, vel, time, threshold, mindrop, is_integrated, thrt, window_size)
 end
 
-function get_slips_core(smoothed, deriv, time, threshhold::Real, mindrop::Real,
+function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhold::Real, mindrop::Real,
      is_integrated::Bool, threshtype::Real, window_size::Real)
     
     # We now take a numeric derivative and get an average
-    diff_avg::Vector = [] # empty
+    diff_avg = nothing # Any empty
     if threshtype == 1
         diff_avg = mean(deriv)
         diff_avg = [diff_avg for _ in eachindex(deriv)]
