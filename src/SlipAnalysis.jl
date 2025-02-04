@@ -264,7 +264,7 @@ function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhol
         # First-order approximation: assume the shape begins and ends at min_diff halfway between the start index and the preceeding index.
         curv = zeros(en - st + 2)
         curt = zeros(en - st + 2)
-        curv[2:end-1] .= (deriv[mask] .- min_diff[st])
+        curv[2:end-1] .= (deriv[mask] .- (min_diff .* ones(length(deriv)))[st])
         curt[2:end-1] .= time2[mask]
         curt[1] = curt[2] - tsamp / 2
         curt[end] = curt[end-1] + tsamp / 2
