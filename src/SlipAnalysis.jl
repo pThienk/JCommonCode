@@ -104,7 +104,7 @@
 
     # Create the time vector if none is given
     if isempty(time)
-        time = isempty(disp) ? eachindex(vel) : eachindex(disp)
+        time = isempty(disp) ? eachindex(vel) |> collect : eachindex(disp) |> collect
     end
 
     # Make window_size the nearest odd number for compatability with sliding_median.
