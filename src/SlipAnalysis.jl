@@ -171,8 +171,6 @@ function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhol
             # New code using median average difference (see https://en.wikipedia.org/wiki/Median_absolute_deviation)
             # Estimates the standard deviation of the noisy part of the data by assuming noise is normally distributed
             # and using relationship between MAD and standard deviation for normal data.
-
-            # Rewritter's Comment: Not sure where the magic number 1.4826 came from, tbh
             min_diff = diff_avg .+ (threshhold * mad(deriv .- diff_avg))
         end
     end
@@ -180,7 +178,7 @@ function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhol
     # Now we see if a slip is occurring, i.e. if the derivative is above the minimum value.
 
     # Shift by one index forward
-    slips::Vector = [0 ; diff(deriv .> min_diff)]
+    slips::Vector = [0 ; diff(1 .* (deriv .> min_diff))]
     # Velocity start index (first index above 0)
     velocity_index_begins::Vector{Int} = [i for i in eachindex(slips) if slips[i] == 1]
     # Velocity end index (last index above 0)
@@ -233,7 +231,7 @@ function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhol
     index_av_ends::Vector{Int} = index_ends[mindrop .< (smoothed[displacement_index_ends] .- smoothed[displacement_index_begins] .- mindrop_correction)]
 
     # Finally we use these indices to get the durations and sizes of the events, accounting for diff().
-    slip_durations::Vector = time[index_av_ends] - time[index_av_begins]
+    slip_durations::Vector = time[index_av_ends] .- time[index_av_begins]
     dt = median(diff(time))
 
     # Mindrop correction term.
@@ -446,8 +444,8 @@ function get_slips_vel(; time::Vector{<:Real}, velocity::Vector{<:Real}, drops::
         curt[1] = curt[2] - tsamp / 2
         curt[end] = curt[end-1] + tsamp / 2
 
-        velocity_out = curv
-        times_out = curt
+        push!(velocity_out, curv)
+        push!(times_out, curt)
     end
 
     return (velocity_out, times_out, sizes, durations, index_av_begins, index_av_ends)
