@@ -269,8 +269,8 @@ function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhol
         curt[1] = curt[2] - tsamp / 2
         curt[end] = curt[end-1] + tsamp / 2
 
-        velocity = curv
-        times = curt
+        push!(velocity, curv)
+        push!(times, curt)
     end
 
     return (velocity, times, slip_sizes, slip_durations, index_av_begins, index_av_ends)
