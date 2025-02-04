@@ -137,7 +137,7 @@
     disp = (-1)^(drops) .* disp
     vel = (-1)^(drops) .* vel
 
-    return get_slips_core(displacement, velocity, time, threshold, mindrop, is_integrated, threshtype, window_size)
+    return get_slips_core(disp, vel, time, threshold, mindrop, is_integrated, threshtype, window_size)
 end
 
 function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhold::Real, mindrop::Real,
