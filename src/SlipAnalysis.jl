@@ -160,12 +160,12 @@ function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhol
     end
 
     # We now set the minimum slip rate for it to be considered an avalanche
-    min_diff::Real = 0 # []
+    min_diff::Vector = []
     if threshhold == -1
-        min_diff = 0 # zeros(length(deriv))
+        min_diff = zeros(length(deriv))
     else
         if threshtype == 1
-            min_diff = diff_avg + (std(deriv)*threshhold)
+            min_diff = diff_avg .+ (std(deriv)*threshhold)
         else
             # Works for both cases of sliding median and overall median.
             # New code using median average difference (see https://en.wikipedia.org/wiki/Median_absolute_deviation)
@@ -173,7 +173,7 @@ function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhol
             # and using relationship between MAD and standard deviation for normal data.
 
             # Rewritter's Comment: Not sure where the magic number 1.4826 came from, tbh
-            min_diff = diff_avg + (threshhold * mad(deriv .- diff_avg))
+            min_diff = diff_avg .+ (threshhold * mad(deriv .- diff_avg))
         end
     end
 
@@ -264,7 +264,7 @@ function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhol
         # First-order approximation: assume the shape begins and ends at min_diff halfway between the start index and the preceeding index.
         curv = zeros(en - st + 2)
         curt = zeros(en - st + 2)
-        curv[2:end-1] .= (deriv[mask] .- (min_diff .* ones(length(deriv)))[st])
+        curv[2:end-1] .= (deriv[mask] .- min_diff[st])
         curt[2:end-1] .= time2[mask]
         curt[1] = curt[2] - tsamp / 2
         curt[end] = curt[end-1] + tsamp / 2
