@@ -24,7 +24,7 @@ end
 
     Return: CR::Vector{Number} - cumulative integration result for each domain step
 """
-@inline function cumulative_trapz_int(x::Vector{<:Real}, f::Vector{<:Real})::Vector{Real}
+@inline function cumulative_trapz_int(x::Vector, f::Vector)::Vector{Real}
     CR::Vector{Real} = []
 
     min_indexes = min(length(x), length(f)) == length(x) ? eachindex(x) : eachindex(f)
@@ -47,7 +47,7 @@ end
 
     Return: filtered::Vector{eltype(samp)} - the resulting Vector, always of the same length and type as samp
 """
-@inline function sliding_median(samp::Vector{<:Real}, window_size::Int)
+@inline function sliding_median(samp::Vector, window_size::Int)
     @assert (window_size <= length(samp)) "Window size should not be larger than sample size!"
     @assert isodd(window_size) "Window size should be odd for maximum efficiency!"
 
@@ -84,7 +84,7 @@ end
 
     Return: Tuple{Vector, Vector} - a tuple of the unique elements Vector, and their counts
 """
-@inline function unique_count(vec::Vector{<:Real})::Tuple
+@inline function unique_count(vec::Vector)::Tuple
     
     sort!(vec; alg=QuickSort)
     counts::Vector{Int} = []
