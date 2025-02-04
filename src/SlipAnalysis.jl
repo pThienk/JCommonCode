@@ -140,7 +140,7 @@
     return get_slips_core(disp, vel, time, threshold, mindrop, is_integrated, thrt, window_size)
 end
 
-function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhold::Real, mindrop::Real,
+function get_slips_core(smoothed, deriv, time, threshhold::Real, mindrop::Real,
      is_integrated::Bool, threshtype::Real, window_size::Real)
     
     # We now take a numeric derivative and get an average
