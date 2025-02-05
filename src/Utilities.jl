@@ -146,3 +146,45 @@ end
 
     return (x_values, y_values)
 end
+
+"""
+    Makes a simple CCDF scatter plot of the data provided. Additionally, the \'comparable\'
+    parameter can be provided to plot a comparison curve alongside data. If \'save\' is provided,
+    saves the plot figure at the specified path. The default scale is :log10, but can be chosen by
+    the user. Note: this functionality is intended for data visualization only, not for
+    publication-quality plots!
+
+    Parameters: list_x::Vector{<:Real}, list_y::Vector{<:Real} - x and y Vectors of coordinates of the data - REQUIRED
+                scale::Symbol - scale of x and y axises - Optional; Default = :log10
+                save::String - path to save plot figure, does not save if empty - Optional; Default = empty
+                comparable::Tuple - must be provided in the form (lx::Vector{<:Real}, ly::Vector{<:Real}, name::String),
+                                    plots a comparison curve alongside data - Optional; Default = empty
+
+    Return: the Plots object \'p\'
+"""
+function scaling_plot(list_x::Vector{<:Real}, list_y::Vector{<:Real}; scale::Symbol=:log10, save::String="", comparable::Tuple=())
+
+    @assert (length(list_x) == length(list_y)) "Incompatable Lists: list_x and list_y must have the same length!"
+
+    if scale == :log10
+        list_x = [x for x in list_x if (x > 0)]
+        list_y = [y for y in list_y if (y > 0)]
+    end
+
+    p = scatter(list_x, list_y; label="data", color=:blue, xlabel="Sizes (s)", ylabel="P (S > s)", title="Plot of CCDF (Event Probs vs Event Sizes)",
+     xscale=scale, yscale=scale, legend=:outertop, legendcolumns=(isempty(comparable) ? 1 : 2))
+
+    if !isempty(comparable)
+        lx, ly, name = comparable
+
+        @assert (length(lx) == length(ly)) "Incompatable Lists: lx and ly in comparable must have the same length!"
+        plot!(p, lx, ly; label=name, color=:red)
+    end
+
+    if !isempty(save)
+        savefig(p, save)
+    end
+
+    gui()
+    return p
+end

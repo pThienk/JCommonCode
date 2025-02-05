@@ -3,6 +3,7 @@ module JCommonCode
 # Imports all needed libraries
 using Statistics, StatsBase
 using Trapz
+using Plots
 
 # Includes and exports all utilities functions
 export readline_data
@@ -10,6 +11,7 @@ export cumulative_trapz_int
 export sliding_median
 export unique_count
 export pow_linemaker
+export scaling_plot
 include("Utilities.jl")
 
 # Includes and exports user-side slips functions

@@ -24,7 +24,7 @@ _If you find any bug and/or problem, report to one of the following people_
 
 ## Testing Status
 
-**Functionalities Not All Tested**
+**Functionalities Currently All Tested: Working**
 
 ## Current Supported Functionalities
 
@@ -33,7 +33,8 @@ readline_data()\
 cumulative_trapz_int()\
 sliding_median()\
 unique_count()\
-power_linemaker()
+power_linemaker()\
+scaling_plot
 
 **Slips Calculation**\
 get_slips()\
