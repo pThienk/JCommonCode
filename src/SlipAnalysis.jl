@@ -178,7 +178,7 @@ function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhol
     # Now we see if a slip is occurring, i.e. if the derivative is above the minimum value.
 
     # Shift by one index forward
-    slips::Vector = [0 ; diff(1 .* (deriv .> min_diff))]
+    slips::Vector = [0 ; diff(deriv .> min_diff)]
     # Velocity start index (first index above 0)
     velocity_index_begins::Vector{Int} = [i for i in eachindex(slips) if slips[i] == 1]
     # Velocity end index (last index above 0)
@@ -202,19 +202,20 @@ function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhol
     # Correcting for if displacement is integrated or not.
 
     # In all cases, the displacement index is one more than velocity index begins.
-    displacement_index_begins::Vector{Int} = velocity_index_begins
-    # + is_integrated
-    displacement_index_ends::Vector{Int} = velocity_index_ends
+    # Plus 1 to account for Julia-Python indexing difference
+    displacement_index_begins::Vector{Int} = velocity_index_begins .+ 1
+    # Plus 1 to account for Julia-Python indexing difference
+    displacement_index_ends::Vector{Int} = velocity_index_ends .+ 1
 
     # Reported start and end index different depending on if displacement or velocity is given.
     index_begins::Vector{Int} = []
     index_ends::Vector{Int} = []
     if is_integrated
-        index_begins = velocity_index_begins
-        index_ends = velocity_index_ends
+        index_begins = deepcopy(velocity_index_begins)
+        index_ends = deepcopy(velocity_index_ends)
     else
-        index_begins = displacement_index_begins
-        index_ends = displacement_index_ends
+        index_begins = deepcopy(displacement_index_begins)
+        index_ends = deepcopy(displacement_index_ends)
     end
 
     # Now we see if the drops were large enough to be considered an avalanche.
@@ -228,6 +229,7 @@ function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhol
     end
     
     index_av_begins::Vector{Int} = index_begins[mindrop .< (smoothed[displacement_index_ends] .- smoothed[displacement_index_begins] .- mindrop_correction)]
+
     index_av_ends::Vector{Int} = index_ends[mindrop .< (smoothed[displacement_index_ends] .- smoothed[displacement_index_begins] .- mindrop_correction)]
 
     # Finally we use these indices to get the durations and sizes of the events, accounting for diff().
@@ -239,10 +241,18 @@ function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhol
     duration_calculation = time[index_av_ends .- is_integrated] .- time[index_av_begins]
 
     # Increment size calculation by 1 if the displacement was integrated to account for cumtrapz()
-    is_step = 1 .* ((slip_durations .<= dt) .* is_integrated .* (index_av_ends .< length(smoothed)))
+    is_step::Vector{Int} = (slip_durations .<= dt) .* is_integrated .* (index_av_ends .< lastindex(smoothed))
 
     # Sizes are more accurately reported by only correcting for background rate, not the rate + threshold
-    slip_sizes::Vector = smoothed[index_av_ends .+ is_step] .- smoothed[index_av_begins] .- diff_avg[index_av_begins] .* duration_calculation .* Int(threshhold != -1)
+    # Plus 1 to account for Julia-Python indexing difference
+    slip_sizes::Vector = []
+    if threshhold == -1
+        slip_sizes = smoothed[index_av_ends .+ is_step .+ 1] .- smoothed[index_av_begins .+ 1]
+    else
+        slip_sizes = smoothed[index_av_ends .+ is_step .+ 1] .- smoothed[index_av_begins .+ 1] 
+        .- diff_avg[index_av_begins .+ 1] .* duration_calculation
+    end
+
     # time_begins = time[index_av_begins]
     # time_ends = time[index_av_ends]
     time2 = 0.5 .* (time[1:end-1] .+ time[2:end])
@@ -275,7 +285,7 @@ function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhol
 end
 
 """
-    Identical to get_slips_wrap & get_slips_core in terms of parameters and outputs, but specifically designed for velocity signals & to ensure no negative sizes.
+    Identical to get_slips & get_slips_core in terms of parameters and outputs, but specifically designed for velocity signals & to ensure no negative sizes.
     Use the trapezoidal rule + chopping off all parts of the signal less than the threshold (i.e. velocity < threshold*std(data) or whatever) to get a more accurate view of the size of an event.
 
     Parameters
@@ -364,7 +374,13 @@ function get_slips_vel(; time::Vector{<:Real}, velocity::Vector{<:Real}, drops::
         avg = mean
     end
 
-    cutoff_velocity = (avg(velocity) + stddev(velocity) * threshold * Int(threshold != -1)) .* ones(length(velocity))
+    cutoff_velocity::Vector = []
+    if threshold == -1
+        cutoff_velocity = zeros(length(velocity))
+    else
+        cutoff_velocity = [(avg(velocity) + stddev(velocity) * threshold) for _ in eachindex(velocity)]
+    end
+    
     if threshtype == "sliding_median"
         cutoff_velocity = sliding_median(deriv, window_size)
         cutoff_velocity[1:(window_size ÷ 2)] .= cutoff_velocity[window_size ÷ 2]

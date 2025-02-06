@@ -24,7 +24,11 @@ _If you find any bug and/or problem, report to one of the following people_
 
 ## Testing Status
 
-**Functionalities Currently All Tested: Working**
+**Functionalities Currently All Tested: Working As Intended**
+
+![Preview](test/test_out/get_slips_vel.png "Avg Velocity plotted on Dstress")
+
+![Preview](test/test_out/CCDF_Plot_s0.5.png "Scaling law plot for 1000 Sample and Comparison Line for s^(1/2)")
 
 ## Current Supported Functionalities
 
@@ -34,7 +38,7 @@ cumulative_trapz_int()\
 sliding_median()\
 unique_count()\
 power_linemaker()\
-scaling_plot
+scaling_plot()
 
 **Slips Calculation**\
 get_slips()\

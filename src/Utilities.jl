@@ -105,7 +105,7 @@ end
         end
     end
 
-    return (unique!(vec), counts)
+    return (unique(vec), counts)
 end
 
 """
@@ -138,10 +138,10 @@ end
 
     log_b = log_y_intercept - slope * log_x_intercept
 
-    num = round(ppd * (log_xmax - log_xmin))
-    spacing = (log_xmax - log_xmin) / num
+    #num = round(ppd * (log_xmax - log_xmin))
+    #spacing = (log_xmax - log_xmin) / num
 
-    x_values = [10^expo for expo in log_xmin:spacing:log_xmax]
+    x_values = logrange(xmin, xmax, round(Int, ppd * (log_xmax - log_xmin))) # [10^expo for expo in log_xmin:spacing:log_xmax]
     y_values = (10^log_b) .* (x_values .^ slope)
 
     return (x_values, y_values)
@@ -162,7 +162,7 @@ end
 
     Return: the Plots object \'p\'
 """
-function scaling_plot(list_x::Vector{<:Real}, list_y::Vector{<:Real}; scale::Symbol=:log10, save::String="", comparable::Tuple=())
+@inline function scaling_plot(list_x::Vector{<:Real}, list_y::Vector{<:Real}; scale::Symbol=:log10, save::String="", comparable::Tuple=())
 
     @assert (length(list_x) == length(list_y)) "Incompatable Lists: list_x and list_y must have the same length!"
 
@@ -178,7 +178,7 @@ function scaling_plot(list_x::Vector{<:Real}, list_y::Vector{<:Real}; scale::Sym
         lx, ly, name = comparable
 
         @assert (length(lx) == length(ly)) "Incompatable Lists: lx and ly in comparable must have the same length!"
-        plot!(p, lx, ly; label=name, color=:red)
+        plot!(p, lx, ly; label=name, color=:red, lw=3)
     end
 
     if !isempty(save)
