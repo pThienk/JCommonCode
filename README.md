@@ -26,9 +26,11 @@ _If you find any bug and/or problem, report to one of the following people_
 
 **Functionalities Currently All Tested: Working As Intended**
 
-![Preview](test/test_out/get_slips_vel.png "Avg Velocity plotted on Dstress")
+Slips regions (red) plotted on Dstress (blue)
+![Preview](test/test_out/get_slips_vel.png)
 
-![Preview](test/test_out/CCDF_Plot_s0.5.png "Scaling law plot for 1000 Sample and Comparison Line for s^(1/2)")
+Scaling law plot for 1000 Sample and Comparison Line for s^(1/2)
+![Preview](test/test_out/CCDF_Plot_s0.5.png)
 
 ## Current Supported Functionalities
 
