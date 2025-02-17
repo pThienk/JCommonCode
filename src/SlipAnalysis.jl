@@ -261,7 +261,7 @@ function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhol
 
     velocity::Vector = []
     times::Vector = []
-    for k ∈ eachindex(index_av_begins)
+    @inbounds for k ∈ eachindex(index_av_begins)
         st = index_av_begins[k]
         en = index_av_ends[k]
         mask = st:en-1 |> collect
@@ -422,7 +422,7 @@ function get_slips_vel(; time::Vector{<:Real}, velocity::Vector{<:Real}, drops::
     # Get the possible sizes
     possible_sizes::Vector = []
     possible_durations::Vector = []
-    for i ∈ eachindex(index_begins) 
+    @inbounds for i ∈ eachindex(index_begins) 
         st = index_begins[i]
         en = index_ends[i]
         trapz_st = max(st - 1, 0)
@@ -444,7 +444,7 @@ function get_slips_vel(; time::Vector{<:Real}, velocity::Vector{<:Real}, drops::
 
     velocity_out::Vector = []
     times_out::Vector = []
-    for k ∈ eachindex(index_av_begins)
+    @inbounds for k ∈ eachindex(index_av_begins)
         st = index_av_begins[k]
         en = index_av_ends[k]
         mask = st:en-1 |> collect

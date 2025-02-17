@@ -36,6 +36,7 @@ Scaling law plot for 1000 Samples and Comparison Line for s^(1/2)
 
 **Utilities**\
 readline_data()\
+readline_data_bundle()\
 cumulative_trapz_int()\
 sliding_median()\
 unique_count()\

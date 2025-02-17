@@ -15,6 +15,42 @@
 end
 
 """
+    Read data from an entire directory of files with the specified prefix and suffix,
+    else attempt to read all files in the directory. Data is returned as a vector of 
+    tuples with elements of the form (filename, Vector{type}). WARNING!: There is no
+    check for the validity of the files' format. Please make sure that all files you
+    are attempting to read have the valid format!
+   
+    Parameter:  dir::String - path to the directory to read - REQUIRED
+                pref::String - prefix identifier of the files to read - Optional; Default=empty
+                suff::String - suffix identifier of the files to read, INCLUDING EXTENSIONS - Optional; Default=empty
+                type - type of data to be read, passes to readline_data - Optional; Default=Float64
+
+"""
+@inline function readline_data_bundle(dir::String; pref::String="", suff::String="", type=Float64)::Vector{Tuple}
+
+    files::Vector{String} = readdir(dir)
+    dir = dir[1:end-length((split(dir, "/")[end]))]
+
+    if !isempty(pref) && !isempty(suff)
+        files = [f for f in files if (f[1:lastindex(pref)] == pref) && (f[end-lastindex(suff)+1:end] == suff)]
+    elseif !isempty(pref)
+        files = [f for f in files if (f[1:lastindex(pref)] == pref)]
+    elseif !isempty(suff)
+        files = [f for f in files if (f[end-lastindex(suff)+1:end] == suff)]
+    else
+
+    end
+
+    data_bundle::Vector{Tuple} = []
+    @inbounds for file ∈ files
+        push!(data_bundle, (file, readline_data(dir * file; type=Float64)))
+    end
+    
+    return data_bundle
+end
+
+"""
     Performs 1D trapezoidal integration on a discreet function (as a Vector) with respect
     to some corresponding discreet domain (also as a Vector). The resulting Vector contains
     accumulated integration result for each domain step.
@@ -29,7 +65,7 @@ end
 
     min_indexes = min(length(x), length(f)) == length(x) ? eachindex(x) : eachindex(f)
 
-    for i ∈ min_indexes
+    @inbounds for i ∈ min_indexes
         push!(CR, trapz((x[1:i],), f[1:i]))
     end
 
@@ -54,7 +90,7 @@ end
     filtered::Vector{eltype(samp)} = []
     half_win_size::Int = (window_size ÷ 2) + 1
 
-    for i ∈ eachindex(samp)
+    @inbounds for i ∈ eachindex(samp)
 
         window_vec::Vector{Real} = []
         if i < half_win_size
@@ -92,7 +128,7 @@ end
     count::Int = 1
     current = nothing
     next = nothing
-    for i in eachindex(vec) 
+    @inbounds for i in eachindex(vec) 
         
         current = vec[i]
         next = i < lastindex(vec) ? vec[i+1] : nothing
