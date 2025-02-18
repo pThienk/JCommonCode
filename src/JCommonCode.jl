@@ -4,6 +4,7 @@ module JCommonCode
 using Statistics, StatsBase
 using Trapz
 using Plots
+using Printf
 
 # Includes and exports all utilities functions
 export readline_data
@@ -23,6 +24,9 @@ include("SlipAnalysis.jl")
 export ccdf
 export cdf
 include("CCDF.jl")
+
+# Includes and exports all power laws MLE related functions
+include("PowerMLE.jl")
 
 
 

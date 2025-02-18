@@ -39,7 +39,7 @@ readline_data()\
 readline_data_bundle()\
 cumulative_trapz_int()\
 sliding_median()\
-unique_count()\
+unique_count()!\
 power_linemaker()\
 scaling_plot()
 

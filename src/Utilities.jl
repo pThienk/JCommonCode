@@ -17,14 +17,18 @@ end
 """
     Read data from an entire directory of files with the specified prefix and suffix,
     else attempt to read all files in the directory. Data is returned as a vector of 
-    tuples with elements of the form (filename, Vector{type}). WARNING!: There is no
-    check for the validity of the files' format. Please make sure that all files you
+    tuples with elements of the form (filename::String, Vector{type}). 
+    
+    WARNING!: There is no check for the validity of the files' format. Please make sure that all files you
     are attempting to read have the valid format!
    
     Parameter:  dir::String - path to the directory to read - REQUIRED
                 pref::String - prefix identifier of the files to read - Optional; Default=empty
                 suff::String - suffix identifier of the files to read, INCLUDING EXTENSIONS - Optional; Default=empty
                 type - type of data to be read, passes to readline_data - Optional; Default=Float64
+
+    Return: data_bundle::Vector{Tuple} - a Vector of (filename, data::Vector{type}) Tuple, where data corresponds
+            to the filename it was read from.
 
 """
 @inline function readline_data_bundle(dir::String; pref::String="", suff::String="", type=Float64)::Vector{Tuple}
@@ -112,15 +116,17 @@ end
 end
 
 """
-    Takes a Vector and returns the Vectors of its unique elements, and their counts.
-    The elements are sorted in ascending order; the counts' indexes match their value
-    counterparts.
+    Takes a Vector and and modified it by sorting and removing repetitive elements.
+    The function returns the count of each element's repetitions.
+    
+    WARNING!: This function will modify the original by sorting it and removing repetitions!
 
     Parameter: vec::Vector{<:Real} - the operating Vector - REQUIRED
 
-    Return: Tuple{Vector, Vector} - a tuple of the unique elements Vector, and their counts
+    Return: Vector{Int} - a Vector of the counts of each element in the same order as 
+            the Vector elements
 """
-@inline function unique_count(vec::Vector{<:Real})::Tuple
+@inline function unique_count!(vec::Vector{<:Real})::Vector{Int}
     
     sort!(vec; alg=QuickSort)
     counts::Vector{Int} = []
@@ -141,7 +147,9 @@ end
         end
     end
 
-    return (unique(vec), counts)
+    unique!(vec)
+
+    return counts
 end
 
 """

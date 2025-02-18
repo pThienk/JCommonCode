@@ -30,9 +30,9 @@ function ccdf(data::Vector{<:Real}; method="scipy")::Tuple
     @assert (!isempty(data)) "Data cannot be empty!"
     @assert (method == "scipy" || method == "dahmen") "Please choose between two methods: \'scipy\' or \'dahmen\'."
 
-    data = [value for value in data if (value > 0) && (isfinite(value))]
+    histx = [value for value in data if (value > 0) && (isfinite(value))]
 
-    histx, counts = unique_count(data)
+    counts = unique_count!(histx)
 
     cumulative_counts::Vector{Int} = []
     histy::Vector = []
@@ -63,9 +63,9 @@ function cdf(data::Vector{<:Real}; method="scipy")::Tuple
     @assert (!isempty(data)) "Data cannot be empty!"
     @assert (method == "scipy" || method == "dahmen") "Please choose between two methods: \'scipy\' or \'dahmen\'."
 
-    data = [value for value in data if (value > 0) && (isfinite(value))]
+    histx = [value for value in data if (value > 0) && (isfinite(value))]
 
-    histx, counts = unique_count(data)
+    counts = unique_count!(histx)
 
     cumulative_counts::Vector{Int} = []
     histy::Vector = []
