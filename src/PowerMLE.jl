@@ -4,6 +4,9 @@
 # Power-Law Distributions in Empirical Data. SIAM Review, 51(4),
 # 661–703. http://dx.doi.org/10.1137/070710111, https://arxiv.org/abs/0706.1062
 
+# Parts modified from https://github.com/jlapeyre/MaximumLikelihoodPower.jl by John Lapeyre to be compatible
+# with newer Julia versions.
+
 """
     MLEScan{T <: Real}
 
@@ -33,7 +36,7 @@ struct MLEKS{T}
 end
 
 """
-    Overload the standard show() function to prints out the state of MLEScan
+    Overloads the standard show() function to prints out the state of MLEScan
 """
 function Base.show(io::IO, s::MLEScan)
     @printf(io, "alpha   = %.8f\n" , s.alpha)
@@ -49,7 +52,7 @@ function Base.show(io::IO, s::MLEScan)
 end
 
 """
-    
+
 """
 function mle(data::Vector{<:Real})::Tuple{Real, Real}
 
