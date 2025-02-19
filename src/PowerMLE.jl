@@ -60,11 +60,11 @@ end
     Returns the maximum likelihood estimate and standard error of the exponent of a power law
     applied to a Vector.
 
-    Parameter: data::Vector{<:Real} - Vector of data points - REQUIRED
+    Parameter: data::AbstractVector{<:Real} - Vector of data points - REQUIRED
 
     Returns: Tuple of the MLE and SE in the form (ahat::Real, stderr::Real)
 """
-function mle(data::Vector{<:Real})::Tuple{Real, Real}
+function mle(data::AbstractVector{<:Real})::Tuple{Real, Real}
 
     @assert (!isempty(data)) "The data Vector cannot be empty!"
 
@@ -82,23 +82,24 @@ function mle(data::Vector{<:Real})::Tuple{Real, Real}
     end
 
     ahat::Real = 1 + ncount / acc
-    stderr::Reat = (ahat - 1) / sqrt(ncount)
+    stderr::Real = (ahat - 1) / sqrt(ncount)
     return (ahat, stderr)
 end
 
 """
     Returns the Kolmogorov-Smirnov statistics (max distance) comparing data to a power law with power alpha.
     
-    Parameters: data::Vector{<:Real} - the Vector of data points - REQUIRED
+    Parameters: data::AbstractVector{<:Real} - the Vector of data points - REQUIRED
                 alpha::Real - the power to compare - REQUIRED
 
     Return: max_distance::Real - the Kolmogorov-Smirnov statistics max distance
 """
-function ks_statistics(data::Vector{<:Real}, alpha::Real)
+function ks_statistics(data::AbstractVector{<:Real}, alpha::Real)
     
     @assert (!isempty(data)) "The data Vector cannot be empty!"
 
-    data = unique(data)
+    data = sort(data; alg=QuickSort)
+    unique!(data)
 
     num::Int = length(data)
     xmin::Real = data[1]
@@ -118,12 +119,12 @@ end
 """
     Computes the Kolmogorov Smirnov statistics for several values of α in the iterator powers.
 
-    Parameters: data::Vector{<:Real} - the Vector of data points - REQUIRED
+    Parameters: data::AbstractVector{<:Real} - the Vector of data points - REQUIRED
                 powers::AbstractVector{<:Real} - the iterator of powers to test - REQUIRED
 
     Returns: the value of α that minimizes the KS statistic and the two neighboring values.
 """
-function scan_ks(data::Vector{<:Real}, powers::AbstractVector{<:Real})
+function scan_ks(data::AbstractVector{<:Real}, powers::AbstractVector{<:Real})
 
     @assert (!isempty(data)) "The data Vector cannot be empty!"
 
@@ -136,11 +137,11 @@ end
     Returns the MLE and SE of the exponent of a power law
     applied to the sorted Vector data. Also return the Kolmogorov-Smirnov statistics.
     
-    Parameter: data::Vector{<:Real} - the Vector of data points - REQUIRED
+    Parameter: data::AbstractVector{<:Real} - the Vector of data points - REQUIRED
     
     Return: results are returned in an instance of type MLEKS.
 """
-function mle_ks(data::Vector{<:Real})
+function mle_ks(data::AbstractVector{<:Real})
 
     @assert (!isempty(data)) "The data Vector cannot be empty!"
 
@@ -152,7 +153,7 @@ end
 """
     Copies and mutate MLEScan object
 """
-function copy_mslescan!(mlescan::MLEScan, mle::MLEKS, data::Vector{<:Real}, i::Integer)
+function copy_mslescan!(mlescan::MLEScan, mle::MLEKS, data::AbstractVector{<:Real}, i::Integer)
 
     mlescan.minKS = mle.KS
     mlescan.alpha = mle.alpha
@@ -165,7 +166,7 @@ end
 """
     Compares the results of MLE estimation to record results in mlescan and update mlescan.
 """
-function compare_scan(mlescan::MLEScan, mle::MLEKS, data::Vector{<:Real}, i::Integer)
+function compare_scan(mlescan::MLEScan, mle::MLEKS, data::AbstractVector{<:Real}, i::Integer)
 
     if mle.KS < mlescan.minKS
         copy_mslescan!(mlescan, mle, data, i)
@@ -182,14 +183,14 @@ end
 
     scan_mle is intended to analayze the power-law behavior of the tail of data.
 
-    Parameters: data::Vector{<:Real} - the Vector of data points - REQUIRED
+    Parameters: data::AbstractVector{<:Real} - the Vector of data points - REQUIRED
                 ntrials::Int - number of trials to perform - Optional; Default=100
                 stderrcutoff::Real - maximum threshold SE to stop trials - Optional; Default=0.1
                 useKS::Bool - whether to use the smallest MLE - Optional; Default=false
 
     Returns: mlescan::MLEScan - the object containing scans' results
 """
-function scan_mle(data::Vector{<:Real}; ntrials::Int=100, stderrcutoff::Real=0.1, useKS::Bool=false)
+function scan_mle(data::AbstractVector{<:Real}; ntrials::Int=100, stderrcutoff::Real=0.1, useKS::Bool=false)
 
     @assert (!isempty(data)) "The data Vector cannot be empty!"
 
