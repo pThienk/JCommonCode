@@ -51,4 +51,11 @@ get\_slips\_vel()
 ccdf()\
 cdf()
 
+**Power Laws MLE**\
+mle()\
+ks_statistics()\
+scan_mle()\
+scan_ks()\
+mle_ks()
+
 **More Coming in the Future**

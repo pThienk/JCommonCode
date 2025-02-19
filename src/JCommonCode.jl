@@ -26,6 +26,11 @@ export cdf
 include("CCDF.jl")
 
 # Includes and exports all power laws MLE related functions
+export mle
+export ks_statistics
+export scan_mle
+export scan_ks
+export mle_ks
 include("PowerMLE.jl")
 
 
