@@ -116,14 +116,14 @@ function ks_statistics(data::Vector{<:Real}, alpha::Real)
 end
 
 """
-    Computes the Kolmogorov Smirnov statistics for several values of α in the Vector powers.
+    Computes the Kolmogorov Smirnov statistics for several values of α in the iterator powers.
 
     Parameters: data::Vector{<:Real} - the Vector of data points - REQUIRED
-                powers::Vector{<:Real} - the vector powers to test - REQUIRED
+                powers::AbstractVector{<:Real} - the iterator of powers to test - REQUIRED
 
     Returns: the value of α that minimizes the KS statistic and the two neighboring values.
 """
-function scan_ks(data::Vector{<:Real}, powers::Vector{<:Real})
+function scan_ks(data::Vector{<:Real}, powers::AbstractVector{<:Real})
 
     @assert (!isempty(data)) "The data Vector cannot be empty!"
 
@@ -191,6 +191,10 @@ end
 """
 function scan_mle(data::Vector{<:Real}; ntrials::Int=100, stderrcutoff::Real=0.1, useKS::Bool=false)
 
+    @assert (!isempty(data)) "The data Vector cannot be empty!"
+
+    data = sort(data; alg=QuickSort)
+
     skip::Int = round(Int, length(data) / ntrials)
     if skip < 1
         skip = 1 
@@ -207,7 +211,7 @@ function _scan_mle(data, range::AbstractVector{<:Integer}, stderrcutoff, useKS)
     mlescan = MLEScan(eltype(data))
     mlescan.nptsall = length(data)
     lastind::Int = 0
-    for i in range
+    @inbounds for i in range
         ndata = @view data[i:end]
         mleks = mle_ks(ndata)
         lastind = i
