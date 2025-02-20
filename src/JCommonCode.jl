@@ -8,6 +8,7 @@ using Printf
 
 # Includes and exports all utilities functions
 export readline_data
+export readline_data_bundle
 export cumulative_trapz_int
 export sliding_median
 export unique_count
