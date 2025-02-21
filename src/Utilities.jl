@@ -216,7 +216,10 @@ end
     end
 
     p = scatter(list_x, list_y; label="data", color=:blue, xlabel="Sizes (s)", ylabel="P (S > s)", title="Plot of CCDF (Event Probs vs Event Sizes)",
-     xscale=scale, yscale=scale, legend=:outertop, legendcolumns=(isempty(comparable) ? 1 : 2))
+        xscale=scale, yscale=scale, legend=:outertop, legendcolumns=(isempty(comparable) ? 1 : 2), minorgrid=true)
+
+    xlims!(1e-4, 1e4)
+    ylims!(1e-4, 1e1)
 
     if !isempty(comparable)
         lx, ly, name = comparable
