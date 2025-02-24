@@ -243,6 +243,9 @@ function get_slips_core(smoothed::Vector, deriv::Vector, time::Vector, threshhol
     # Increment size calculation by 1 if the displacement was integrated to account for cumtrapz()
     is_step::Vector{Int} = (slip_durations .<= dt) .* is_integrated .* (index_av_ends .< lastindex(smoothed))
 
+    # Make smoothed the same size as velocity
+    push!(smoothed, smoothed[end])
+
     # Sizes are more accurately reported by only correcting for background rate, not the rate + threshold
     # Plus 1 to account for Julia-Python indexing difference
     slip_sizes::Vector = []
