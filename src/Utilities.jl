@@ -210,12 +210,18 @@ end
 
     @assert (length(list_x) == length(list_y)) "Incompatable Lists: list_x and list_y must have the same length!"
 
+    list_x_nonzero = []
+    list_y_nonzero = []
     if scale == :log10
-        list_x = [x for x in list_x if (x > 0)]
-        list_y = [y for y in list_y if (y > 0)]
+        for i in eachindex(list_x)
+            if list_x[i] > 0 && list_y[i] > 0
+                push!(list_x_nonzero, list_x[i])
+                push!(list_y_nonzero, list_y[i])
+            end
+        end
     end
 
-    p = scatter(list_x, list_y; label="data", color=:blue, xlabel="Sizes (s)", ylabel="P (S > s)", title="Plot of CCDF (Event Probs vs Event Sizes)",
+    p = scatter(list_x_nonzero, list_y_nonzero; label="data", color=:blue, xlabel="Sizes (s)", ylabel="P (S > s)", title="Plot of CCDF (Event Probs vs Event Sizes)",
         xscale=scale, yscale=scale, legend=:outertop, legendcolumns=(isempty(comparable) ? 1 : 2), minorgrid=true)
 
     xlims!(1e-4, 1e4)
@@ -351,14 +357,14 @@ function _logbinning(data_x::AbstractVector{<:Real}, data_y::AbstractVector{<:Re
     edges::Vector{Real} = logrange(x, y, num_bins + 1) |> collect
 
     edges_idxs::Vector{Int} = []
-    for i ∈ eachindex(edges) 
+    @inbounds for i ∈ eachindex(edges) 
         push!(edges_idxs, argmin(data_x .- edges[i]))
     end
 
     dx = (x_max/x_min)^(1/num_bins)
     centers = logrange(x_min + dx, x_max - dx, num_bins) |> collect
 
-    for i ∈ 1:num_bins
+    @inbounds for i ∈ 1:num_bins
         
         st = edges_idxs[i]
         en = edges_idxs[i + 1]
