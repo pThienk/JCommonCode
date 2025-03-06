@@ -2,6 +2,7 @@ module JCommonCode
 
 # Imports all needed libraries
 using Statistics, StatsBase
+using Distributions
 using Trapz
 using Plots
 using Printf
@@ -14,6 +15,8 @@ export sliding_median
 export unique_count
 export pow_linemaker
 export scaling_plot
+export sort_key_data!
+export logbinning
 include("Utilities.jl")
 
 # Includes and exports user-side slips functions

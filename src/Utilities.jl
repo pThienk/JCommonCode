@@ -235,3 +235,144 @@ end
     gui()
     return p
 end
+
+"""
+    Organize the values in data_y into a log bin histogram which is characterize by the range of data_x
+    and num_bins. The function returns the centers of the bins, the total organized histogram, and the errors
+    of each bin value. Addtionally, the type of error can be chosen between :SEM (Standard Error of Mean)
+    or :SE (Standard Error), as well as the error scaling argument ci.
+
+    Parameters:
+                data_x::AbstractVector{<:Real} - Vector of x-values data - REQUIRED
+                data_y::AbstractVector{<:Real} - Vector of y-values data - REQUIRED
+                num_bins::Int - Number of bins to organize - REQUIRED
+                err_type::Symbol - Error type between :SEM and :SE - Optional; Default = :SEM
+                ci::Real - Error scaling argument - Optional; Default = 0.68
+
+    Returns: 
+            The Tuple containing centers of the bin, the organized log bin histogram, and the errors of each
+            bin in the form (centers, out, errs).
+"""
+@inline function logbinning(data_x::AbstractVector{<:Real}, data_y::AbstractVector{<:Real}, num_bins::Int; err_type::Symbol=:SEM, ci::Real=0.68)::Tuple
+
+    @assert !(isempty(data_x) || isempty(data_y)) "Data Vectors cannot be empty!"
+
+    centers, out, errs = _logbinning(data_x, data_y, num_bins; err_type)
+
+    z = √2 * invlogcdf(Normal(), log((1 + ci) / 2))
+
+    return centers, out, errs .* z
+end
+
+"""
+    Sort all of the Vectors in satellite_data according to the ordering of the keys. Order can be chosen
+    between ascending and descending (assuming the data type in key allow such comparison with isless()).
+    Additionally, the sorting algorithm can be chosen to suit the problem size.
+
+    Parameters:
+                key::AbstractVector - The Vector of keys to be sorted - REQUIRED
+                satellite_data::AbstractVector... - The variadic argument of Vectors of satellite data - PREFFERED
+                alg::Symbol - The algorithm used in sorting the keys - Optional; Default = :quicksort
+                is_ascending - True if sorted ascending, false otherwise - Optional; Default = true
+"""
+@inline function sort_key_data!(key::AbstractVector, satellite_data::AbstractVector...; alg::Symbol=:insert, is_ascending::Bool=true)
+    
+    @assert (!isempty(key)) "Key cannot be empty!"
+
+    isempty(satellite_data) && @warn "No satellite data, trivially sorting key. If this is intended, it is better to use sort!() instead."
+
+    if alg == :insert
+        _insertion_sort_key_data!(key, satellite_data...; is_ascending)
+    end
+
+end
+
+"""
+    Backend implementation of insertion sort for the function sort_key_data!. The asymptotic running is Θ(n^2)
+    which is not optimal, but its tightness and simplicity is effective for small array sizes.  
+"""
+function _insertion_sort_key_data!(key::AbstractVector, satellite_data::AbstractVector...; is_ascending::Bool)
+    
+    @inbounds for i in eachindex(key) 
+
+        j::Int = i + 1
+        while j <= lastindex(key)
+            if is_ascending
+                if !isless(key[i], key[j]) 
+                    key_temp = key[i]
+                    key[i] = key[j]
+                    key[j] = key_temp
+
+                    !isempty(satellite_data) && for data ∈ satellite_data 
+                        data_temp = data[i]
+                        data[i] = data[j]
+                        data[j] = data_temp
+                    end
+
+                end
+            else
+                if isless(key[i], key[j]) || key[i] == key[j]
+                    key_temp = key[i]
+                    key[i] = key[j]
+                    key[j] = key_temp
+
+                    !isempty(satellite_data) && for data ∈ satellite_data 
+                        data_temp = data[i]
+                        data[i] = data[j]
+                        data[j] = data_temp
+                    end
+
+                end
+            end
+
+            j += 1
+        end
+    end
+
+end
+
+"""
+    Backend implementation of the logbinning function
+"""
+function _logbinning(data_x::AbstractVector{<:Real}, data_y::AbstractVector{<:Real}, num_bins::Int; err_type::Symbol=:SEM)
+    
+    centers::Vector{Real} = []
+    out::Vector{Real} = []
+    errs::Vector{Real} = []
+
+    data_x = data_x[data_x > 0]
+    data_y = data_y[data_x > 0]
+
+    sort_key_data!(data_x, data_y)
+
+    x_min = data_x[1]
+    x_max = data_x[end]
+
+    edges::Vector{Real} = logrange(x, y, num_bins + 1) |> collect
+
+    edges_idxs::Vector{Int} = []
+    for i ∈ eachindex(edges) 
+        push!(edges_idxs, argmin(data_x .- edges[i]))
+    end
+
+    dx = (x_max/x_min)^(1/num_bins)
+    centers = logrange(x_min + dx, x_max - dx, num_bins) |> collect
+
+    for i ∈ 1:num_bins
+        
+        st = edges_idxs[i]
+        en = edges_idxs[i + 1]
+    
+        en = en + Int(st == en)
+        values = data_y[st:en]
+        push!(out, mean(values))
+
+        if err_type == :SEM
+            push!(errs, std(values)/sqrt(en - st))
+        else
+            push!(errs, std(values))
+        end
+    end
+
+    return centers, out, errs
+end
