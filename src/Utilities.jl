@@ -210,12 +210,18 @@ end
 
     @assert (length(list_x) == length(list_y)) "Incompatable Lists: list_x and list_y must have the same length!"
 
+    list_x_nonzero = []
+    list_y_nonzero = []
     if scale == :log10
-        list_x = [x for x in list_x if (x > 0)]
-        list_y = [y for y in list_y if (y > 0)]
+        for i in eachindex(list_x)
+            if list_x[i] > 0 && list_y[i] > 0
+                push!(list_x_nonzero, list_x[i])
+                push!(list_y_nonzero, list_y[i])
+            end
+        end
     end
 
-    p = scatter(list_x, list_y; label="data", color=:blue, xlabel="Sizes (s)", ylabel="P (S > s)", title="Plot of CCDF (Event Probs vs Event Sizes)",
+    p = scatter(list_x_nonzero, list_y_nonzero; label="data", color=:blue, xlabel="Sizes (s)", ylabel="P (S > s)", title="Plot of CCDF (Event Probs vs Event Sizes)",
         xscale=scale, yscale=scale, legend=:outertop, legendcolumns=(isempty(comparable) ? 1 : 2), minorgrid=true)
 
     xlims!(1e-4, 1e4)
