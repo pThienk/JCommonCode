@@ -174,7 +174,7 @@ end
     [0] x_vals: (Array) X values of the line
     [1] y_vals: (Array) Y values of the line
 """
-@inline function pow_linemaker(slope::Real, intercept::Tuple{<:Real,<:Real}, xmin::Real, xmax::Real; ppd::Real=40)::Tuple
+@inline function pow_linemaker(slope::Real, intercept::Tuple{<:Real,<:Real}, xmin::Real, xmax::Real; ppd::Int=40)::Tuple
     
     log_x_intercept, log_y_intercept = log10.(intercept)
     log_xmin = log10(xmin)
@@ -198,7 +198,7 @@ end
     the user. Note: this functionality is intended for data visualization only, not for
     publication-quality plots!
 
-    Parameters: list_x::Vector{<:Real}, list_y::Vector{<:Real} - x and y Vectors of coordinates of the data - REQUIRED
+    Parameters: list_x::AbstractVector{<:Real}, list_y::AbstractVector{<:Real} - x and y Vectors of coordinates of the data - REQUIRED
                 scale::Symbol - scale of x and y axises - Optional; Default = :log10
                 save::String - path to save plot figure, does not save if empty - Optional; Default = empty
                 comparable::Tuple - must be provided in the form (lx::Vector{<:Real}, ly::Vector{<:Real}, name::String),
@@ -206,14 +206,14 @@ end
 
     Return: the Plots object \'p\'
 """
-@inline function scaling_plot(list_x::Vector{<:Real}, list_y::Vector{<:Real}; scale::Symbol=:log10, save::String="", comparable::Tuple=())
+@inline function scaling_plot(list_x::AbstractVector{<:Real}, list_y::AbstractVector{<:Real}; scale::Symbol=:log10, save::String="", comparable::Tuple=())
 
     @assert (length(list_x) == length(list_y)) "Incompatable Lists: list_x and list_y must have the same length!"
 
     list_x_nonzero = []
     list_y_nonzero = []
     if scale == :log10
-        for i in eachindex(list_x)
+        @inbounds for i in eachindex(list_x)
             if list_x[i] > 0 && list_y[i] > 0
                 push!(list_x_nonzero, list_x[i])
                 push!(list_y_nonzero, list_y[i])
@@ -354,15 +354,15 @@ function _logbinning(data_x::AbstractVector{<:Real}, data_y::AbstractVector{<:Re
     x_min = data_x[1]
     x_max = data_x[end]
 
-    edges::Vector{Real} = logrange(x, y, num_bins + 1) |> collect
+    edges::Vector{Real} = logrange(x_min, x_max, num_bins + 1) |> collect
 
     edges_idxs::Vector{Int} = []
     @inbounds for i ∈ eachindex(edges) 
         push!(edges_idxs, argmin(data_x .- edges[i]))
     end
 
-    dx = (x_max/x_min)^(1/num_bins)
-    centers = logrange(x_min + dx, x_max - dx, num_bins) |> collect
+    α = (x_max/x_min)^(1/num_bins)
+    centers = logrange(x_min * α, x_max / α, num_bins) |> collect
 
     @inbounds for i ∈ 1:num_bins
         
