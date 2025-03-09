@@ -12,11 +12,11 @@
 
     Record best estimate of alpha and associated parameters.
 """
-mutable struct MLEScan{T <: Real}
-    alpha::T
-    stderr::T
-    minKS::T
-    xmin::T
+mutable struct MLEScan
+    alpha::Real
+    stderr::Real
+    minKS::Real
+    xmin::Real
     imin::Int
     npts::Int
     nptsall::Int
@@ -37,7 +37,7 @@ end
 
 function MLEScan(T)
     z = zero(T)
-    return MLEScan(z, z, convert(T, Inf), z, 0, 0, 0, 0)
+    return MLEScan(z, z, Inf, z, 0, 0, 0, 0)
 end
 
 """
