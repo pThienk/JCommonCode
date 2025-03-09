@@ -369,7 +369,7 @@ function _logbinning(data_x::AbstractVector{<:Real}, data_y::AbstractVector{<:Re
         st = edges_idxs[i]
         en = edges_idxs[i + 1]
     
-        en = en + Int(st == en)
+        en = en >= lastindex(data_y) ? en : en + Int(st == en)
         values = data_y[st:en]
         push!(out, mean(values))
 
