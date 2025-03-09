@@ -346,8 +346,8 @@ function _logbinning(data_x::AbstractVector{<:Real}, data_y::AbstractVector{<:Re
     out::Vector{Real} = []
     errs::Vector{Real} = []
 
-    data_x = data_x[data_x > 0]
-    data_y = data_y[data_x > 0]
+    data_x = data_x[data_x .> 0]
+    data_y = data_y[data_x .> 0]
 
     sort_key_data!(data_x, data_y)
 
