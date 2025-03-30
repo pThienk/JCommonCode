@@ -21,6 +21,7 @@ include("Utilities.jl")
 
 # Includes and exports user-side slips functions
 export get_slips
+export get_slips_partitioned
 export get_slips_vel
 include("SlipAnalysis.jl")
 

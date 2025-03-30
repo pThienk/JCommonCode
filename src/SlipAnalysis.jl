@@ -2,6 +2,120 @@
 # analysis. As with the Python version, the get_slips function accounts
 # for both displacement-based ("SLIP"), and velocity-based ("SLIP rate")
 
+function get_slips_partitioned(; disp::Vector=[], vel::Vector=[], time::Vector=[], drops::Bool=true,
+    threshold::Real=0, mindrop::Real=0, threshtype::String="median", window_size::Int=101)::Tuple
+
+    @assert !(isempty(disp) && isempty(vel)) "Give at least one of velocity or displacement!"
+
+    v_pack::Vector = []
+    t_pack::Vector = []
+    s_pack::Vector = []
+    d_pack::Vector = []
+    b_pack::Vector = []
+    e_pack::Vector = []
+
+    if isempty(disp)
+
+        @assert (length(vel) / 100000 < 1.5) "Unnecessary!: For small array sizes, use get_slips() instead!"
+
+        n_partition = floor(Int, length(vel) / 100000)
+        
+        start_ind::Int = 0
+        end_ind::Int = 0
+
+        result = nothing
+
+        for i in 1:n_partition
+
+            start_ind = (i-1)*100000 + 1
+            end_ind = i*100000
+
+            if !isempty(time)
+                result = get_slips(; vel=vel[start_ind:end_ind], time=time[start_ind:end_ind], drops=drops,
+                threshold=threshold, mindrop=mindrop, threshtype=threshtype, window_size=window_size)
+            else
+                result = get_slips(; vel=vel[start_ind:end_ind], drops=drops,
+                threshold=threshold, mindrop=mindrop, threshtype=threshtype, window_size=window_size)
+            end
+
+            push!(v_pack, result[1])
+            push!(t_pack, result[2])
+            push!(s_pack, result[3])
+            push!(d_pack, result[4])
+            push!(b_pack, result[5])
+            push!(e_pack, result[6])
+        end
+
+        if !isempty(time)
+            result = get_slips(; vel=vel[end_ind:end], time=time[end_ind:end], drops=drops,
+            threshold=threshold, mindrop=mindrop, threshtype=threshtype, window_size=window_size)
+        else
+            result = get_slips(; vel=vel[end_ind:end], drops=drops,
+            threshold=threshold, mindrop=mindrop, threshtype=threshtype, window_size=window_size)
+        end
+
+        push!(v_pack, result[1])
+        push!(t_pack, result[2])
+        push!(s_pack, result[3])
+        push!(d_pack, result[4])
+        push!(b_pack, result[5])
+        push!(e_pack, result[6])
+        
+    end
+
+    if isempty(vel)
+
+        @assert (length(disp) / 100000 < 1.5) "Unnecessary!: For small array sizes, use get_slips() instead!"
+
+        n_partition = floor(Int, length(disp) / 100000)
+        
+        start_ind::Int = 0
+        end_ind::Int = 0
+
+        result = nothing
+
+        for i in 1:n_partition
+
+            start_ind = (i-1)*100000 + 1
+            end_ind = i*100000
+
+            if !isempty(time)
+                result = get_slips(; disp=disp[start_ind:end_ind], time=time[start_ind:end_ind], drops=drops,
+                threshold=threshold, mindrop=mindrop, threshtype=threshtype, window_size=window_size)
+            else
+                result = get_slips(; disp=disp[start_ind:end_ind], drops=drops,
+                threshold=threshold, mindrop=mindrop, threshtype=threshtype, window_size=window_size)
+            end
+
+            push!(v_pack, result[1])
+            push!(t_pack, result[2])
+            push!(s_pack, result[3])
+            push!(d_pack, result[4])
+            push!(b_pack, result[5])
+            push!(e_pack, result[6])
+        end
+
+        if !isempty(time)
+            result = get_slips(; disp=disp[end_ind:end], time=time[end_ind:end], drops=drops,
+                threshold=threshold, mindrop=mindrop, threshtype=threshtype, window_size=window_size)
+        else
+            result = get_slips(; disp=disp[end_ind:end], drops=drops,
+                threshold=threshold, mindrop=mindrop, threshtype=threshtype, window_size=window_size)
+        end
+
+        push!(v_pack, result[1])
+        push!(t_pack, result[2])
+        push!(s_pack, result[3])
+        push!(d_pack, result[4])
+        push!(b_pack, result[5])
+        push!(e_pack, result[6])
+        
+    end
+
+    return (append!([], v_pack...),  append!([], t_pack...), append!([], s_pack...), append!([], d_pack...), append!([], b_pack...), append!([], e_pack...))
+    
+end
+
 """
     Wrapper function for the vectorized and fixed version of get_slips.
     Extracts basic avalanche statistics from provided data.
