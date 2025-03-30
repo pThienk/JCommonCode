@@ -2,6 +2,9 @@
 # analysis. As with the Python version, the get_slips function accounts
 # for both displacement-based ("SLIP"), and velocity-based ("SLIP rate")
 
+"""
+    Convienient function for handling array sizes larger than 100000 in a reasonable amount of time 
+"""
 function get_slips_partitioned(; disp::Vector=[], vel::Vector=[], time::Vector=[], drops::Bool=true,
     threshold::Real=0, mindrop::Real=0, threshtype::String="median", window_size::Int=101)::Tuple
 
@@ -14,15 +17,15 @@ function get_slips_partitioned(; disp::Vector=[], vel::Vector=[], time::Vector=[
     b_pack::Vector = []
     e_pack::Vector = []
 
+    start_ind::Int = 0
+    end_ind::Int = 0
+
     if isempty(disp)
 
         @assert (length(vel) / 100000 < 1.5) "Unnecessary!: For small array sizes, use get_slips() instead!"
 
         n_partition = floor(Int, length(vel) / 100000)
         
-        start_ind::Int = 0
-        end_ind::Int = 0
-
         result = nothing
 
         for i in 1:n_partition
@@ -69,9 +72,6 @@ function get_slips_partitioned(; disp::Vector=[], vel::Vector=[], time::Vector=[
 
         n_partition = floor(Int, length(disp) / 100000)
         
-        start_ind::Int = 0
-        end_ind::Int = 0
-
         result = nothing
 
         for i in 1:n_partition
@@ -113,7 +113,7 @@ function get_slips_partitioned(; disp::Vector=[], vel::Vector=[], time::Vector=[
     end
 
     return (append!([], v_pack...),  append!([], t_pack...), append!([], s_pack...), append!([], d_pack...), append!([], b_pack...), append!([], e_pack...))
-    
+
 end
 
 """
