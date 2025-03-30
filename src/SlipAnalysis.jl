@@ -112,7 +112,8 @@ function get_slips_partitioned(; disp::Vector=[], vel::Vector=[], time::Vector=[
         
     end
 
-    return (append!([], v_pack...),  append!([], t_pack...), append!([], s_pack...), append!([], d_pack...), append!([], b_pack...), append!([], e_pack...))
+    return (append!([], v_pack...),  append!([], t_pack...), convert(Vector{Real}, append!([], s_pack...)),
+    convert(Vector{Real}, append!([], d_pack...)), convert(Vector{Real}, append!([], b_pack...)), convert(Vector{Real}, append!([], e_pack...)))
 
 end
 
