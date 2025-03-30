@@ -22,7 +22,7 @@ function get_slips_partitioned(; disp::Vector=[], vel::Vector=[], time::Vector=[
 
     if isempty(disp)
 
-        @assert (length(vel) / 100000 < 1.5) "Unnecessary!: For small array sizes, use get_slips() instead!"
+        @assert (length(vel) / 100000 > 1.5) "Unnecessary!: For small array sizes, use get_slips() instead!"
 
         n_partition = floor(Int, length(vel) / 100000)
         
@@ -68,7 +68,7 @@ function get_slips_partitioned(; disp::Vector=[], vel::Vector=[], time::Vector=[
 
     if isempty(vel)
 
-        @assert (length(disp) / 100000 < 1.5) "Unnecessary!: For small array sizes, use get_slips() instead!"
+        @assert (length(disp) / 100000 > 1.5) "Unnecessary!: For small array sizes, use get_slips() instead!"
 
         n_partition = floor(Int, length(disp) / 100000)
         
