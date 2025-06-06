@@ -133,7 +133,7 @@ function shapes(v, t, s, d; centers=nothing, style::Symbol=:size, width::Real=0.
     avgv = []
     avgstd = []
 
-    for center in centers 
+    @inbounds for center in centers 
         
         bt = [t[idx] - min(t[idx]) for (idx, val) in enumerate(data) if val >= center*(1-width) && val < center*(1+width)]
         bv = [v[idx] - min(v[idx]) for (idx, val) in enumerate(data) if val >= center*(1-width) && val < center*(1+width)]
