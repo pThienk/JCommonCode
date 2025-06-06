@@ -41,7 +41,8 @@ cumulative_trapz_int()\
 sliding_median()\
 unique_count()!\
 power_linemaker()\
-scaling_plot()
+scaling_plot()\
+linear_interpolate()
 
 **Slips Calculation**\
 get_slips()\
@@ -57,5 +58,8 @@ ks_statistics()\
 scan_mle()\
 scan_ks()\
 mle_ks()
+
+**Avalanche Shapes**\
+shapes()
 
 **More Coming in the Future**
