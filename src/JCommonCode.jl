@@ -41,7 +41,7 @@ export mle_ks
 include("PowerMLE.jl")
 
 # Includes and exports all functions related to the average avalanche's shape
-
+export shapes
 include("Shapes.jl")
 
 
