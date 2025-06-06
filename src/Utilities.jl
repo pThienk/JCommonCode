@@ -382,3 +382,18 @@ function _logbinning(data_x::AbstractVector{<:Real}, data_y::AbstractVector{<:Re
 
     return centers, out, errs
 end
+
+@inline function linear_interpolate(x_list::Vector, y_list::Vector, x_value::Real)
+    
+    start_ind = nothing
+    @inbounds for i in 1:(length(x_list)-1)
+        
+        if x_value >= x_list[i] && x_value <= x_list[i+1]
+            start_ind = i
+            break
+        end
+        
+    end
+
+    return ((y_list[start_ind+1] - y_list[start_ind])/(x_list[start_ind+1] - x_list[start_ind]))*(x_value - x_list[start_ind]) + y_list[start_ind]
+end

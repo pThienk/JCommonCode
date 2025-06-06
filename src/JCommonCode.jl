@@ -6,6 +6,7 @@ using Distributions
 using Trapz
 using Plots
 using Printf
+using Bootstrap
 
 # Includes and exports all utilities functions
 export readline_data
@@ -17,6 +18,7 @@ export pow_linemaker
 export scaling_plot
 export sort_key_data!
 export logbinning
+export linear_interpolate
 include("Utilities.jl")
 
 # Includes and exports user-side slips functions
@@ -38,7 +40,9 @@ export scan_ks
 export mle_ks
 include("PowerMLE.jl")
 
+# Includes and exports all functions related to the average avalanche's shape
 
+include("Shapes.jl")
 
 
 
