@@ -3,7 +3,7 @@
 function resize(vels::Vector, times::Vector, length::Int)
 
     outtimes = (0:(length-1) |> collect) ./ (length-1) 
-    mytimes = (times .- min(times)) ./ (max(times) - min(times))
+    mytimes = (times .- minimum(times)) ./ (maximum(times) - minimum(times))
     
     outvels = [linear_interpolate(mytimes, vels, t) for t in outtimes]
 
@@ -110,7 +110,7 @@ function shapes(v, t, s, d; centers=nothing, style::Symbol=:size, width::Real=0.
     end
 
     if isempty(limits)
-        limits = (min(data), max(data))
+        limits = (minimum(data), maximum(data))
     end
 
     max_width = find_max_width(limits..., nbins)
@@ -135,8 +135,8 @@ function shapes(v, t, s, d; centers=nothing, style::Symbol=:size, width::Real=0.
 
     @inbounds for center in centers 
         
-        bt = [t[idx] - min(t[idx]) for (idx, val) in enumerate(data) if val >= center*(1-width) && val < center*(1+width)]
-        bv = [v[idx] - min(v[idx]) for (idx, val) in enumerate(data) if val >= center*(1-width) && val < center*(1+width)]
+        bt = [t[idx] .- minimum(t[idx]) for (idx, val) in enumerate(data) if val >= center*(1-width) && val < center*(1+width)]
+        bv = [v[idx] .- minimum(v[idx]) for (idx, val) in enumerate(data) if val >= center*(1-width) && val < center*(1+width)]
 
         lens = length.(bt)
         idxmax = argmax(lens)
@@ -150,7 +150,7 @@ function shapes(v, t, s, d; centers=nothing, style::Symbol=:size, width::Real=0.
         end
 
         if style == :size
-            at = bt[idxmax] .- min(bt[idxmax])
+            at = bt[idxmax] .- minimum(bt[idxmax])
         else
 
             maxlen = length(bt[idxmax])
@@ -160,7 +160,7 @@ function shapes(v, t, s, d; centers=nothing, style::Symbol=:size, width::Real=0.
                 avv = bv[i]
                 avt = bt[i]
                 if style == :duration_shapes
-                    avv ./= max(avv)
+                    avv ./= maximum(avv)
                 end
 
                 tmpt, tmpv = resize(avv, avt, maxlen)
@@ -169,14 +169,14 @@ function shapes(v, t, s, d; centers=nothing, style::Symbol=:size, width::Real=0.
             end
 
             at = tmpt
-            at .*= center
+            #at .*= center
         end
 
-        av = mean(toav_v, dims=1)
+        av = permutedims(mean(toav_v, dims=1))
 
         astd = []
         if errbar_type == :bootstrap
-            for i in 1:max(lens)
+            for i in 1:maximum(lens)
                 bs_data = bootstrap(mean, toav_v[:, i], BasicSampling(9999))
                 (bs_c, ) = confint(bs_data, BasicConfInt(ci))
                 lo = av[i] - bs_c[3]
@@ -185,7 +185,7 @@ function shapes(v, t, s, d; centers=nothing, style::Symbol=:size, width::Real=0.
             end
 
         else
-            for i in 1:max(lens)
+            for i in 1:maximum(lens)
                 z = invlogcdf(Normal(), log((1 - ci) / 2))
                 sigma = z*std(toav_v[:, i])
                 push!(astd, (sigma, sigma))
