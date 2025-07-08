@@ -13,7 +13,7 @@ x, y = ccdf(s)
 
 #psl = scaling_plot(x, y; comparable=(xl, yl, "s ^ (1/2)"))
 
-allt, allv, avgt, avgv, avgstd, centers, width = shapes(v, t, s, d; style=:duration_shapes, nbins=8)
+allt, allv, avgt, avgv, avgstd, centers, width = shapes(v, t, s, d; style=:duration_shapes, nbins=5)
 
 println("width=$width, " * "centers=$(join(string.(centers), ","))")
 

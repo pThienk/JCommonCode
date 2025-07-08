@@ -143,6 +143,13 @@ function shapes(v, t, s, d; centers=nothing, style::Symbol=:size, width::Real=0.
         idxmax = 0
         if !isempty(lens)
             idxmax = argmax(lens)
+        else
+            push!(allt, [])
+            push!(allv, [])
+            push!(avgt, [])
+            push!(avgv, [])
+            push!(avgstd, [])
+            continue
         end
 
         at = zeros(lens[idxmax])
