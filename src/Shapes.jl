@@ -139,7 +139,11 @@ function shapes(v, t, s, d; centers=nothing, style::Symbol=:size, width::Real=0.
         bv = [v[idx] .- minimum(v[idx]) for (idx, val) in enumerate(data) if val >= center*(1-width) && val < center*(1+width)]
 
         lens = length.(bt)
-        idxmax = argmax(lens)
+
+        idxmax = 0
+        if !isempty(lens)
+            idxmax = argmax(lens)
+        end
 
         at = zeros(lens[idxmax])
         av = zeros(lens[idxmax])
